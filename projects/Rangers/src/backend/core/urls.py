@@ -15,8 +15,31 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="CareSync AI API",
+        default_version='v1',
+        description="AI-powered care coordination backend. Provides patient intake, care plan generation, task management, risk scoring, and RAG-based medical insights.",
+        contact=openapi.Contact(email="team@caresync.ai"),
+        license=openapi.License(name="MIT License"),
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include('care.urls')),
+
+    # Swagger UI
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    # ReDoc UI
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    # Raw OpenAPI JSON/YAML
+    path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
