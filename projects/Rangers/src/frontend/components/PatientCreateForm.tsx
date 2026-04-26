@@ -1,17 +1,18 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { ClipboardPlus, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 const demoSummary =
   "Patient has type 2 diabetes, hypertension, missed recent HbA1c follow-up, inconsistent medication adherence, and needs coordinated PCP/lab/pharmacy follow-up.";
 
 type PatientCreateFormProps = {
   isSubmitting: boolean;
+  onCancel?: () => void;
   onCreate: (name: string, summary: string) => Promise<void>;
 };
 
-export default function PatientCreateForm({ isSubmitting, onCreate }: PatientCreateFormProps) {
+export default function PatientCreateForm({ isSubmitting, onCancel, onCreate }: PatientCreateFormProps) {
   const [name, setName] = useState("");
   const [summary, setSummary] = useState("");
   const [localError, setLocalError] = useState("");
@@ -36,20 +37,12 @@ export default function PatientCreateForm({ isSubmitting, onCreate }: PatientCre
   }
 
   return (
-    <section className="mx-auto max-w-3xl rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="flex items-start gap-3">
-        <span className="flex h-11 w-11 flex-none items-center justify-center rounded-lg bg-blue-50 text-blue-700">
-          <ClipboardPlus className="h-5 w-5" aria-hidden />
-        </span>
-        <div>
-          <h2 className="text-xl font-semibold text-slate-950">Create patient care flow</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">
-            Add patient context to generate a care plan, risk score, coordination tasks, timeline, and graph.
-          </p>
-        </div>
-      </div>
+    <section className="p-5 sm:p-6">
+      <p className="mb-5 text-sm leading-6 text-slate-500">
+        Add patient context to generate a care plan, risk score, coordination tasks, timeline, and dependency graph.
+      </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5">
         {localError ? (
           <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
             {localError}
@@ -89,16 +82,28 @@ export default function PatientCreateForm({ isSubmitting, onCreate }: PatientCre
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Sparkles className="h-4 w-4 text-teal-600" aria-hidden />
-            Use demo patient summary
+            Use demo summary
           </button>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isSubmitting ? "Generating..." : "Generate care plan"}
-          </button>
+          <div className="flex items-center gap-2">
+            {onCancel ? (
+              <button
+                type="button"
+                onClick={onCancel}
+                disabled={isSubmitting}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Cancel
+              </button>
+            ) : null}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSubmitting ? "Generating…" : "Generate care plan"}
+            </button>
+          </div>
         </div>
 
         {isSubmitting ? (

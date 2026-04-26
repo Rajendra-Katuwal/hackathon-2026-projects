@@ -73,10 +73,10 @@ export default function TaskBoard({ onTaskStatusChange, tasks }: TaskBoardProps)
   }
 
   return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
             <Columns3 className="h-5 w-5" aria-hidden />
           </span>
           <div>
@@ -88,7 +88,7 @@ export default function TaskBoard({ onTaskStatusChange, tasks }: TaskBoardProps)
       </div>
 
       {boardError ? (
-        <div role="alert" className="mt-4 flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div role="alert" className="mt-4 flex gap-2 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
           <AlertCircle className="mt-0.5 h-4 w-4 flex-none" aria-hidden />
           <p>{boardError}</p>
         </div>
@@ -101,7 +101,8 @@ export default function TaskBoard({ onTaskStatusChange, tasks }: TaskBoardProps)
             void handleDragEnd(event);
           }}
         >
-          <div className="mt-5 grid gap-4 xl:grid-cols-4">
+          <p className="mt-2 text-xs text-slate-400">Drag cards to move between columns, or use the dropdown on each card.</p>
+          <div className="mt-4 grid h-[520px] gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {statusColumns.map((column) => (
               <TaskColumn column={column} key={column.status} tasks={groupedTasks[column.status]}>
                 {groupedTasks[column.status].map((task) => (
@@ -117,8 +118,9 @@ export default function TaskBoard({ onTaskStatusChange, tasks }: TaskBoardProps)
           </div>
         </DndContext>
       ) : (
-        <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
-          No care coordination tasks are available for this patient.
+        <div className="mt-5 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+          <p className="text-sm font-medium text-slate-500">No care coordination tasks available.</p>
+          <p className="mt-1 text-xs text-slate-400">Tasks are auto-generated from the care plan.</p>
         </div>
       )}
     </section>
@@ -136,24 +138,36 @@ function TaskColumn({ children, column, tasks }: TaskColumnProps) {
     id: column.status,
   });
 
+  const columnAccent: Record<string, string> = {
+    pending:     "border-t-slate-400",
+    in_progress: "border-t-blue-500",
+    completed:   "border-t-emerald-500",
+    overdue:     "border-t-red-500",
+  };
+
   return (
     <section
       ref={setNodeRef}
       className={cn(
-        "min-h-72 rounded-lg border p-3 transition",
+        "flex flex-col rounded-xl border-2 border-t-4 transition",
+        columnAccent[column.status] ?? "border-t-slate-300",
         statusColumnClass(column.status),
         isOver && "ring-2 ring-blue-300",
       )}
     >
-      <div className="mb-3 flex items-start justify-between gap-3">
+      {/* Column header */}
+      <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2">
         <div>
-          <h4 className="font-semibold text-slate-950">{column.label}</h4>
-          <p className="text-sm leading-5 text-slate-500">{column.description}</p>
+          <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700">{column.label}</h4>
+          <p className="text-[10px] text-slate-400">{column.description}</p>
         </div>
-        <span className="rounded-full bg-white px-2.5 py-1 text-sm font-semibold text-slate-600 shadow-sm">{tasks.length}</span>
+        <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-slate-600 shadow-sm">{tasks.length}</span>
       </div>
 
-      <div className="space-y-3">{children}</div>
+      {/* Scrollable card list */}
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        <div className="min-h-24 space-y-2">{children}</div>
+      </div>
     </section>
   );
 }

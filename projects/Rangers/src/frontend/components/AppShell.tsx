@@ -5,6 +5,7 @@ import { AlertCircle, Menu, Plus, RefreshCw } from "lucide-react";
 
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
+import Modal from "@/components/Modal";
 import PatientCreateForm from "@/components/PatientCreateForm";
 import PatientDashboard from "@/components/PatientDashboard";
 import Sidebar from "@/components/Sidebar";
@@ -170,13 +171,12 @@ export default function AppShell() {
   );
 
   const headerTitle = useMemo(() => {
-    if (showCreateForm) return "New patient";
     if (selectedPatient) return selectedPatient.name;
     return "Care coordination workspace";
-  }, [selectedPatient, showCreateForm]);
+  }, [selectedPatient]);
 
   return (
-    <div className="min-h-screen bg-slate-50 lg:flex">
+    <div className="min-h-screen bg-slate-100 lg:flex">
       <Sidebar
         healthState={healthState}
         isLoading={isPatientListLoading}
@@ -184,7 +184,6 @@ export default function AppShell() {
         onClose={() => setIsSidebarOpen(false)}
         onNewPatient={() => {
           setError("");
-          setSelectedPatient(null);
           setShowCreateForm(true);
           setIsSidebarOpen(false);
         }}
@@ -200,20 +199,19 @@ export default function AppShell() {
       />
 
       <main className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <div className="flex min-h-16 items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
+          <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
                 aria-label="Open patient sidebar"
                 onClick={() => setIsSidebarOpen(true)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 lg:hidden"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 lg:hidden"
               >
                 <Menu className="h-5 w-5" aria-hidden />
               </button>
               <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-500">Clinician dashboard</p>
-                <h1 className="truncate text-lg font-semibold text-slate-950 sm:text-xl">{headerTitle}</h1>
+                <h1 className="truncate text-base font-bold text-slate-950 sm:text-lg">{headerTitle}</h1>
               </div>
             </div>
 
@@ -233,7 +231,6 @@ export default function AppShell() {
                 type="button"
                 onClick={() => {
                   setError("");
-                  setSelectedPatient(null);
                   setShowCreateForm(true);
                 }}
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
@@ -245,7 +242,7 @@ export default function AppShell() {
           </div>
         </header>
 
-        <div className="mx-auto w-full max-w-400 px-4 py-5 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-screen-2xl px-4 py-5 sm:px-6 lg:px-8">
           {error ? (
             <div
               role="alert"
@@ -265,9 +262,7 @@ export default function AppShell() {
             </div>
           ) : null}
 
-          {showCreateForm ? (
-            <PatientCreateForm isSubmitting={isCreatingPatient} onCreate={handleCreatePatient} />
-          ) : isDashboardLoading && !selectedPatient ? (
+          {isDashboardLoading && !selectedPatient ? (
             <LoadingState title="Loading patient dashboard" description="Retrieving care plans, tasks, risk scores, and timeline events." />
           ) : selectedPatient ? (
             <PatientDashboard
@@ -285,6 +280,20 @@ export default function AppShell() {
             />
           )}
         </div>
+
+        {/* New patient modal */}
+        <Modal
+          open={showCreateForm}
+          onClose={() => setShowCreateForm(false)}
+          title="Create patient care flow"
+          size="xl"
+        >
+          <PatientCreateForm
+            isSubmitting={isCreatingPatient}
+            onCancel={() => setShowCreateForm(false)}
+            onCreate={handleCreatePatient}
+          />
+        </Modal>
       </main>
     </div>
   );

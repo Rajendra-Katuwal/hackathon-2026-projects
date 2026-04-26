@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, GripVertical, UserRound } from "lucide-react";
+import { CalendarDays, UserRound } from "lucide-react";
 
 import type { Task, TaskStatus } from "@/lib/types";
 import {
@@ -19,55 +19,93 @@ type TaskCardProps = {
   task: Task;
 };
 
+const PRIORITY_BAR: Record<string, string> = {
+  critical: "bg-red-500",
+  high:     "bg-orange-400",
+  medium:   "bg-amber-400",
+  low:      "bg-emerald-500",
+};
+
 export default function TaskCard({ isUpdating, onStatusChange, task }: TaskCardProps) {
+  const isOverdue = task.status === "overdue";
+  const isInProgress = task.status === "in_progress";
+
   return (
-    <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex items-start gap-3">
-        <GripVertical className="mt-1 h-5 w-5 flex-none text-slate-300" aria-hidden />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={cn("rounded-full border px-2.5 py-1 text-sm font-semibold", statusBadgeClass(task.status))}>
-              {labelFromToken(task.status)}
-            </span>
-            <span className={cn("rounded-full border px-2.5 py-1 text-sm font-semibold", priorityBadgeClass(task.priority))}>
-              {labelFromToken(task.priority)}
-            </span>
-          </div>
+    <article
+      className={cn(
+        "group relative overflow-hidden rounded-lg border bg-white transition hover:shadow-md",
+        isOverdue
+          ? "border-red-200 shadow-sm shadow-red-50"
+          : isInProgress
+          ? "border-blue-100"
+          : "border-slate-200",
+        isUpdating && "pointer-events-none opacity-60",
+      )}
+    >
+      {/* Priority left accent */}
+      <span
+        className={cn("absolute inset-y-0 left-0 w-0.5 rounded-l-lg", PRIORITY_BAR[task.priority] ?? PRIORITY_BAR.low)}
+        aria-hidden
+      />
 
-          <h5 className="mt-3 font-semibold leading-6 text-slate-950">{task.title}</h5>
-          {task.description ? <p className="mt-2 text-sm leading-6 text-slate-600">{task.description}</p> : null}
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-semibold", ownerBadgeClass(task.owner))}>
-              <UserRound className="h-3.5 w-3.5" aria-hidden />
-              {labelFromToken(task.owner)}
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-sm font-semibold text-slate-600">
-              <CalendarDays className="h-3.5 w-3.5" aria-hidden />
-              {formatDate(task.deadline)}
-            </span>
-          </div>
-
-          <label className="mt-4 block text-sm font-semibold text-slate-700" htmlFor={`task-status-${task.id}`}>
-            Move task
-            <select
-              id={`task-status-${task.id}`}
-              value={task.status}
-              disabled={isUpdating}
-              onChange={(event) => {
-                void onStatusChange(task.id, event.target.value as TaskStatus);
-              }}
-              className="mt-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500"
-            >
-              {statusColumns.map((column) => (
-                <option key={column.status} value={column.status}>
-                  {column.label}
-                </option>
-              ))}
-            </select>
-          </label>
+      <div className="pl-3 pr-3 pt-2.5 pb-2">
+        {/* Title row */}
+        <div className="flex items-start justify-between gap-1.5">
+          <h5 className="line-clamp-2 min-w-0 flex-1 text-xs font-semibold leading-snug text-slate-900">
+            {task.title}
+          </h5>
+          <span
+            className={cn(
+              "ml-1 shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+              statusBadgeClass(task.status),
+            )}
+          >
+            {labelFromToken(task.status)}
+          </span>
         </div>
+
+        {/* Meta row */}
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span
+            className={cn(
+              "flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+              ownerBadgeClass(task.owner),
+            )}
+          >
+            <UserRound className="h-2.5 w-2.5" aria-hidden />
+            {labelFromToken(task.owner)}
+          </span>
+          <span className="flex items-center gap-0.5 rounded-full bg-slate-50 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
+            <CalendarDays className="h-2.5 w-2.5" aria-hidden />
+            {formatDate(task.deadline)}
+          </span>
+          <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-bold", priorityBadgeClass(task.priority))}>
+            {labelFromToken(task.priority)}
+          </span>
+        </div>
+
+        {/* Status select */}
+        <select
+          aria-label={`Move task: ${task.title}`}
+          value={task.status}
+          disabled={isUpdating}
+          onChange={(e) => void onStatusChange(task.id, e.target.value as TaskStatus)}
+          className="mt-2 w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-300 disabled:cursor-not-allowed"
+        >
+          {statusColumns.map((col) => (
+            <option key={col.status} value={col.status}>
+              {col.label}
+            </option>
+          ))}
+        </select>
       </div>
+
+      {/* Updating overlay */}
+      {isUpdating ? (
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
+          <span className="text-[11px] font-semibold text-slate-500">Updating…</span>
+        </div>
+      ) : null}
     </article>
   );
 }
