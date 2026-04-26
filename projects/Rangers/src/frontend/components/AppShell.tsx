@@ -233,9 +233,9 @@ export default function AppShell() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="hidden h-2 w-2 rounded-full bg-blue-600 sm:inline-block" aria-hidden />
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">CareSync AI</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">CareSync AI</p>
                 </div>
-                <h1 className="mt-0.5 truncate text-base font-bold text-slate-950 sm:text-lg">{headerTitle}</h1>
+                <h1 className="mt-0.5 truncate text-base font-semibold text-slate-950 sm:text-lg">{headerTitle}</h1>
               </div>
             </div>
 
@@ -246,7 +246,7 @@ export default function AppShell() {
                   void refreshPatients();
                   if (selectedPatientId) void handleRefreshSelected();
                 }}
-                className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:inline-flex"
+                className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:inline-flex"
               >
                 <RefreshCw className={cn("h-4 w-4", isDashboardLoading && "animate-spin")} aria-hidden />
                 Refresh
@@ -257,7 +257,7 @@ export default function AppShell() {
                   setError("");
                   setShowCreateForm(true);
                 }}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:bg-blue-800"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 active:bg-blue-800"
               >
                 <Plus className="h-4 w-4" aria-hidden />
                 New patient
@@ -279,7 +279,7 @@ export default function AppShell() {
               <button
                 type="button"
                 onClick={() => setError("")}
-                className="self-start rounded-md px-2 py-1 font-semibold text-red-700 hover:bg-red-100"
+                className="self-start rounded-md px-2 py-1 font-medium text-red-700 hover:bg-red-100"
               >
                 Dismiss
               </button>

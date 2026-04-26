@@ -29,7 +29,7 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
           </div>
         </div>
         {alerts.length > 0 ? (
-          <span className="rounded-full bg-red-100 px-2.5 py-1 text-sm font-bold text-red-700">
+          <span className="rounded-full bg-red-100 px-2.5 py-1 text-sm font-semibold text-red-700">
             {alerts.length}
           </span>
         ) : null}
@@ -47,7 +47,7 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
                   <Clock className="h-3.5 w-3.5" aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-wide text-red-700">Overdue task</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-red-700">Overdue task</p>
                   <p className="mt-0.5 text-sm text-red-900">{alert.message}</p>
                 </div>
               </div>
@@ -61,7 +61,7 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
                   <Zap className="h-3.5 w-3.5" aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-wide text-amber-700">Critical priority</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Critical priority</p>
                   <p className="mt-0.5 text-sm text-amber-900">{alert.message}</p>
                 </div>
               </div>
@@ -73,7 +73,7 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
                   key={`other-${alert.task_id}-${i}`}
                   className="rounded-lg border border-slate-200 bg-slate-50 p-3"
                 >
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                     {labelFromToken(alert.type)}
                   </p>
                   <p className="mt-0.5 text-sm text-slate-700">{alert.message}</p>
@@ -83,7 +83,7 @@ export default function AlertsPanel({ alerts }: AlertsPanelProps) {
         ) : (
           <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
             <CheckCircle2 className="h-5 w-5 flex-none text-emerald-600" aria-hidden />
-            <p className="text-sm font-semibold text-emerald-800">No active alerts — all tasks on track</p>
+            <p className="text-sm font-medium text-emerald-800">No active alerts — all tasks on track</p>
           </div>
         )}
       </div>

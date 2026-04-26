@@ -61,7 +61,7 @@ export default function RagPanel({ patientId }: RagPanelProps) {
 
       {/* Example questions */}
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">
           Suggested questions
         </p>
         <div className="flex flex-wrap gap-2">
@@ -107,7 +107,7 @@ export default function RagPanel({ patientId }: RagPanelProps) {
           <button
             type="submit"
             disabled={isLoading || !question.trim()}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
@@ -131,7 +131,7 @@ export default function RagPanel({ patientId }: RagPanelProps) {
         <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3.5">
           <Loader2 className="h-5 w-5 animate-spin text-blue-600" aria-hidden />
           <div>
-            <p className="text-sm font-semibold text-blue-800">Consulting clinical guidelines…</p>
+            <p className="text-sm font-medium text-blue-800">Consulting clinical guidelines…</p>
             <p className="text-xs text-blue-600">Retrieving relevant context and generating response.</p>
           </div>
         </div>
@@ -142,7 +142,7 @@ export default function RagPanel({ patientId }: RagPanelProps) {
         <article className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
             <MessageSquare className="h-4 w-4 text-blue-600" aria-hidden />
-            <p className="text-sm font-semibold text-slate-800">AI Response</p>
+            <p className="text-sm font-medium text-slate-800">AI Response</p>
             <span className="ml-auto text-xs text-slate-400">Grounded by clinical context</span>
           </div>
           <div className="p-5">

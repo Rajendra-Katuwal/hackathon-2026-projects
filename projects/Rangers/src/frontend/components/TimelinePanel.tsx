@@ -25,7 +25,7 @@ export default function TimelinePanel({ events }: TimelinePanelProps) {
             <p className="text-sm text-slate-500">Newest events first</p>
           </div>
         </div>
-        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-sm font-semibold text-slate-600">{sortedEvents.length}</span>
+        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-600">{sortedEvents.length}</span>
       </div>
 
       {sortedEvents.length ? (
@@ -45,7 +45,7 @@ export default function TimelinePanel({ events }: TimelinePanelProps) {
                       "bg-blue-500",
                   )}
                 />
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                   {labelFromToken(event.event_type)}
                 </p>
                 <p className="mt-0.5 text-xs text-slate-400">{formatDateTime(event.timestamp)}</p>

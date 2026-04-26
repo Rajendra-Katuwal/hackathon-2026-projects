@@ -51,7 +51,7 @@ export default function RiskCard({ risk }: RiskCardProps) {
             <p className="text-xs text-slate-500">Assessed {formatDateTime(risk.created_at)}</p>
           </div>
         </div>
-        <span className={cn("rounded-full border px-3 py-1 text-sm font-bold", riskBadgeClass(risk.level))}>
+        <span className={cn("rounded-full border px-3 py-1 text-sm font-semibold", riskBadgeClass(risk.level))}>
           {risk.level}
         </span>
       </div>
@@ -59,7 +59,7 @@ export default function RiskCard({ risk }: RiskCardProps) {
       {/* Score gauge */}
       <div className="px-5 pb-2 pt-4">
         <div className="flex items-end justify-between">
-          <span className="text-5xl font-black leading-none text-slate-950">{risk.score}</span>
+          <span className="text-5xl font-bold leading-none text-slate-950">{risk.score}</span>
           <span className="mb-1 text-sm font-medium text-slate-400">/ 100</span>
         </div>
         <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100">
@@ -72,7 +72,7 @@ export default function RiskCard({ risk }: RiskCardProps) {
             aria-valuemax={100}
           />
         </div>
-        <div className="mt-1 flex justify-between text-[10px] font-semibold text-slate-400">
+        <div className="mt-1 flex justify-between text-[10px] font-medium text-slate-400">
           <span>Low</span>
           <span>Medium</span>
           <span>High</span>
@@ -82,7 +82,7 @@ export default function RiskCard({ risk }: RiskCardProps) {
       {/* Reasoning */}
       {risk.reasoning ? (
         <div className="mx-5 mb-5 mt-3 rounded-lg bg-slate-50 p-3.5">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
             <ShieldAlert className="h-3.5 w-3.5 text-slate-400" aria-hidden />
             Clinical reasoning
           </div>

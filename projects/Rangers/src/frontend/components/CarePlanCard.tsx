@@ -38,7 +38,7 @@ export default function CarePlanCard({ carePlan }: CarePlanCardProps) {
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:bg-slate-50"
             >
               <Expand className="h-3.5 w-3.5" aria-hidden />
               View full
@@ -53,7 +53,7 @@ export default function CarePlanCard({ carePlan }: CarePlanCardProps) {
               <button
                 type="button"
                 onClick={() => setShowModal(true)}
-                className="mt-3 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                className="mt-3 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
               >
                 Read full care plan →
               </button>
