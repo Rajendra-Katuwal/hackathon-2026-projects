@@ -143,6 +143,41 @@ def _fallback_care_plan(patient_name: str) -> str:
     )
 
 
+def _build_rag_coordination_context(patient: Patient) -> str:
+    """
+    Build a concise coordination context string from a patient's tasks,
+    risk score and recent timeline events — injected into the RAG prompt
+    so the LLM can answer questions grounded in the patient's current state.
+    """
+    parts: list[str] = []
+
+    # Risk
+    risk_scores = list(patient.risk_scores.all())
+    if risk_scores:
+        r = risk_scores[0]
+        parts.append(f"Risk: {r.level} ({r.score}/100). {r.reasoning or ''}")
+
+    # Active tasks (not completed)
+    tasks = list(patient.tasks.all())
+    active = [t for t in tasks if t.status != 'completed']
+    if active:
+        lines = [f"  - [{t.status.upper()}] {t.title} (due {t.deadline}, owner: {t.owner})" for t in active[:10]]
+        parts.append("Active coordination tasks:\n" + "\n".join(lines))
+
+    # Overdue tasks
+    overdue = [t for t in tasks if t.status == 'overdue']
+    if overdue:
+        parts.append(f"Overdue tasks ({len(overdue)}): " + ", ".join(t.title for t in overdue[:5]))
+
+    # Recent timeline events
+    events = list(patient.timeline_events.all())[:6]
+    if events:
+        event_lines = [f"  - {e.event_type}: {e.description}" for e in events]
+        parts.append("Recent events:\n" + "\n".join(event_lines))
+
+    return "\n\n".join(parts)
+
+
 # ---------------------------------------------------------------------------
 # GET /api/patients/
 # ---------------------------------------------------------------------------
