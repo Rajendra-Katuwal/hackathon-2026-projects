@@ -291,19 +291,27 @@ class RAGQueryView(APIView):
 
         patient_summary = ""
         care_plan_content = ""
+        coordination_context = ""
 
         if patient_id:
             try:
-                patient = Patient.objects.get(id=patient_id)
+                patient = Patient.objects.prefetch_related(
+                    Prefetch('tasks', queryset=Task.objects.annotate(porder=_PRIORITY_ORDER).order_by('porder', 'deadline')),
+                    Prefetch('risk_scores', queryset=RiskScore.objects.order_by('-created_at')),
+                    Prefetch('timeline_events', queryset=TimelineEvent.objects.order_by('-timestamp')),
+                    Prefetch('care_plans', queryset=CarePlan.objects.order_by('-created_at')),
+                ).get(id=patient_id)
                 patient_summary = f"Name: {patient.name}\n{patient.summary}"
-                latest_plan = patient.care_plans.order_by('-created_at').first()
+                care_plans = list(patient.care_plans.all())
+                latest_plan = care_plans[0] if care_plans else None
                 if latest_plan:
                     care_plan_content = latest_plan.content
+                coordination_context = _build_rag_coordination_context(patient)
             except Patient.DoesNotExist:
                 pass  # Query proceeds without patient context
 
         try:
-            answer = query_rag(patient_summary, question, care_plan_content)
+            answer = query_rag(patient_summary, question, care_plan_content, coordination_context)
         except Exception as exc:
             logger.error("RAG query failed: %s", exc)
             answer = (

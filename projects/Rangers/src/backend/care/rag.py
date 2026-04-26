@@ -166,7 +166,12 @@ def _populate(collection) -> None:
 # Public API
 # ---------------------------------------------------------------------------
 
-def query_rag(patient_summary: str, question: str, care_plan: str = "") -> str:
+def query_rag(
+    patient_summary: str,
+    question: str,
+    care_plan: str = "",
+    coordination_context: str = "",
+) -> str:
     """
     Answer a clinical coordination question using RAG.
 
@@ -179,6 +184,8 @@ def query_rag(patient_summary: str, question: str, care_plan: str = "") -> str:
         patient_summary:  Free-text patient summary (may be empty string)
         question:         The clinical question to answer
         care_plan:        Optional care plan excerpt for additional context
+        coordination_context:
+                          Current task, risk, alert, and timeline state
 
     Returns:
         Grounded answer string with disclaimer appended.
@@ -195,22 +202,27 @@ def query_rag(patient_summary: str, question: str, care_plan: str = "") -> str:
 
     # Build grounded prompt
     patient_section = f"PATIENT CONTEXT:\n{patient_summary}" if patient_summary else ""
-    plan_section = (
-        f"\nCARE PLAN EXCERPT:\n{care_plan[:400]}" if care_plan else ""
+    plan_section = f"\nCARE PLAN EXCERPT:\n{care_plan[:1200]}" if care_plan else ""
+    coordination_section = (
+        f"\nCURRENT CARE COORDINATION STATE:\n{coordination_context[:2200]}"
+        if coordination_context
+        else ""
     )
 
     prompt = f"""You are a medical care coordination assistant helping a care team.
-You must answer using ONLY the provided medical guidelines. Do not invent information.
+Use the retrieved medical guidelines for clinical coordination guidance and the current care coordination state for patient-specific task, risk, alert, and timeline status.
+Do not invent patient facts, task statuses, deadlines, or clinical claims that are not present in the supplied context.
 
 RETRIEVED MEDICAL GUIDELINES:
 {context}
 
-{patient_section}{plan_section}
+{patient_section}{plan_section}{coordination_section}
 
 QUESTION: {question}
 
 Provide a specific, actionable answer based on the guidelines above.
-If the guidelines do not cover the question, say so clearly.
+If the question is about current tasks or blockers, answer from the current care coordination state.
+If the supplied context does not cover the question, say so clearly.
 Keep your answer concise (3-5 sentences) and mention relevant guideline points."""
 
     try:
@@ -227,7 +239,9 @@ Keep your answer concise (3-5 sentences) and mention relevant guideline points."
         # Graceful degradation — return the retrieved context as the answer
         answer = (
             "Unable to generate a full AI response. "
-            "Here are the most relevant guideline excerpts:\n\n" + context
+            "Here are the most relevant guideline excerpts and current coordination context:\n\n"
+            + context
+            + ("\n\nCURRENT CARE COORDINATION STATE:\n" + coordination_context if coordination_context else "")
         )
 
     disclaimer = (
