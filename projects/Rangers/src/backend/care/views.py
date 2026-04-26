@@ -280,19 +280,27 @@ class RAGQueryView(APIView):
 
         patient_summary = ""
         care_plan_content = ""
+        coordination_context = ""
 
         if patient_id:
             try:
-                patient = Patient.objects.get(id=patient_id)
+                patient = Patient.objects.prefetch_related(
+                    Prefetch('tasks', queryset=Task.objects.annotate(porder=_PRIORITY_ORDER).order_by('porder', 'deadline')),
+                    Prefetch('risk_scores', queryset=RiskScore.objects.order_by('-created_at')),
+                    Prefetch('timeline_events', queryset=TimelineEvent.objects.order_by('-timestamp')),
+                    Prefetch('care_plans', queryset=CarePlan.objects.order_by('-created_at')),
+                ).get(id=patient_id)
                 patient_summary = f"Name: {patient.name}\n{patient.summary}"
-                latest_plan = patient.care_plans.order_by('-created_at').first()
+                care_plans = list(patient.care_plans.all())
+                latest_plan = care_plans[0] if care_plans else None
                 if latest_plan:
                     care_plan_content = latest_plan.content
+                coordination_context = _build_rag_coordination_context(patient)
             except Patient.DoesNotExist:
                 pass  # Query proceeds without patient context
 
         try:
-            answer = query_rag(patient_summary, question, care_plan_content)
+            answer = query_rag(patient_summary, question, care_plan_content, coordination_context)
         except Exception as exc:
             logger.error("RAG query failed: %s", exc)
             answer = (
@@ -316,3 +324,67 @@ class HealthCheckView(APIView):
 
     def get(self, request):
         return Response({'status': 'ok', 'service': 'CareSync AI', 'version': '1.0.0'})
+
+
+def _build_rag_coordination_context(patient: Patient) -> str:
+    """Summarise operational dashboard state for patient-specific RAG answers."""
+    tasks = list(patient.tasks.all())
+    risk_scores = list(patient.risk_scores.all())
+    timeline_events = list(patient.timeline_events.all())
+    latest_risk = risk_scores[0] if risk_scores else None
+
+    status_counts = {
+        'pending': sum(1 for task in tasks if task.status == 'pending'),
+        'in_progress': sum(1 for task in tasks if task.status == 'in_progress'),
+        'completed': sum(1 for task in tasks if task.status == 'completed'),
+        'overdue': sum(1 for task in tasks if task.status == 'overdue'),
+    }
+
+    alerts = []
+    for task in tasks:
+        if task.status == 'overdue':
+            alerts.append(f"Overdue: {task.title}")
+        if task.priority == 'critical' and task.status in ('pending', 'in_progress'):
+            alerts.append(f"Critical priority: {task.title}")
+
+    lines = [
+        f"Task counts: total={len(tasks)}, pending={status_counts['pending']}, "
+        f"in_progress={status_counts['in_progress']}, completed={status_counts['completed']}, "
+        f"overdue={status_counts['overdue']}.",
+    ]
+
+    if latest_risk:
+        lines.append(
+            f"Latest risk: {latest_risk.level} ({latest_risk.score}/100). "
+            f"Reasoning: {latest_risk.reasoning}"
+        )
+    else:
+        lines.append("Latest risk: not available.")
+
+    if alerts:
+        lines.append("Active alerts:")
+        lines.extend(f"- {alert}" for alert in alerts[:10])
+    else:
+        lines.append("Active alerts: none.")
+
+    if tasks:
+        lines.append("Current tasks:")
+        for task in tasks[:20]:
+            deadline = task.deadline.isoformat() if task.deadline else "none"
+            lines.append(
+                f"- {task.title} | status={task.status} | owner={task.owner} | "
+                f"priority={task.priority} | deadline={deadline} | description={task.description}"
+            )
+    else:
+        lines.append("Current tasks: none.")
+
+    if timeline_events:
+        lines.append("Recent timeline events:")
+        for event in timeline_events[:8]:
+            lines.append(
+                f"- {event.timestamp.isoformat()} | {event.event_type}: {event.description}"
+            )
+    else:
+        lines.append("Recent timeline events: none.")
+
+    return "\n".join(lines)
