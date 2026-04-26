@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     CreateCareFlowView,
+    FHIRExportView,
     HealthCheckView,
     PatientListView,
     PatientDashboardView,
@@ -18,6 +19,9 @@ urlpatterns = [
 
     # Full dashboard for a single patient
     path('patient/<int:patient_id>/', PatientDashboardView.as_view(), name='patient-dashboard'),
+
+    # FHIR R4 Bundle export (HL7 interoperability)
+    path('patient/<int:patient_id>/fhir/', FHIRExportView.as_view(), name='patient-fhir-export'),
 
     # Task status update (Kanban)
     path('task/update/', UpdateTaskView.as_view(), name='task-update'),

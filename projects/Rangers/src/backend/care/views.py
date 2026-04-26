@@ -12,6 +12,7 @@ POST /api/rag/query/        — RAG medical insight query
 
 import logging
 
+from django.db import transaction
 from django.db.models import Case, IntegerField, Prefetch, Value, When
 from django.utils import timezone
 from rest_framework import status
@@ -25,6 +26,7 @@ from .task_engine import generate_and_save_tasks
 from .risk_engine import calculate_and_save_risk
 from .timeline import log_event
 from .rag import query_rag
+from .fhir import build_fhir_bundle
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +39,26 @@ _PRIORITY_ORDER = Case(
     default=Value(4),
     output_field=IntegerField(),
 )
+
+
+def _prefetch_patient(patient_id: int) -> Patient:
+    """
+    Fetch a Patient with all related data needed for PatientDashboardSerializer
+    in a fixed number of queries regardless of how many tasks/plans/events exist.
+    Reused by both CreateCareFlowView and PatientDashboardView.
+    """
+    task_qs = Task.objects.annotate(porder=_PRIORITY_ORDER).order_by('porder', 'deadline')
+    return Patient.objects.prefetch_related(
+        Prefetch('tasks', queryset=task_qs),
+        Prefetch(
+            'care_plans',
+            queryset=CarePlan.objects.prefetch_related(
+                Prefetch('tasks', queryset=task_qs),
+            ).order_by('-created_at'),
+        ),
+        Prefetch('risk_scores', queryset=RiskScore.objects.order_by('-created_at')),
+        Prefetch('timeline_events', queryset=TimelineEvent.objects.order_by('-timestamp')),
+    ).get(id=patient_id)
 
 
 # ---------------------------------------------------------------------------
@@ -68,37 +90,40 @@ class CreateCareFlowView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # ── Step 1: Create patient ──────────────────────────────────────────
-        patient = Patient.objects.create(name=name, summary=summary)
-        log_event(patient, 'patient_created', f"Patient '{name}' added to CareSync.")
+        # Wrap DB writes in a transaction so no orphaned Patient on partial failure
+        with transaction.atomic():
+            # ── Step 1: Create patient ──────────────────────────────────────
+            patient = Patient.objects.create(name=name, summary=summary)
+            log_event(patient, 'patient_created', f"Patient '{name}' added to CareSync.")
 
-        # ── Step 2: Generate AI care plan ───────────────────────────────────
-        try:
-            care_plan_content = ai.generate_care_plan(name, summary)
-        except Exception as exc:
-            logger.error("Care plan generation failed for patient %s: %s", patient.id, exc)
-            care_plan_content = _fallback_care_plan(name)
+            # ── Step 2: Generate AI care plan ───────────────────────────────
+            try:
+                care_plan_content = ai.generate_care_plan(name, summary)
+            except Exception as exc:
+                logger.error("Care plan generation failed for patient %s: %s", patient.id, exc)
+                care_plan_content = _fallback_care_plan(name)
 
-        care_plan = CarePlan.objects.create(patient=patient, content=care_plan_content)
-        log_event(patient, 'plan_created', "AI care plan generated.")
+            care_plan = CarePlan.objects.create(patient=patient, content=care_plan_content)
+            log_event(patient, 'plan_created', "AI care plan generated.")
 
-        # ── Step 3: Generate tasks ──────────────────────────────────────────
-        try:
-            generate_and_save_tasks(care_plan)
-        except Exception as exc:
-            logger.error("Task generation failed for care plan %s: %s", care_plan.id, exc)
+            # ── Step 3: Generate tasks ──────────────────────────────────────
+            try:
+                generate_and_save_tasks(care_plan)
+            except Exception as exc:
+                logger.error("Task generation failed for care plan %s: %s", care_plan.id, exc)
 
-        # ── Step 4: Risk scoring ────────────────────────────────────────────
-        try:
-            risk = calculate_and_save_risk(patient, care_plan_content)
-            log_event(
-                patient, 'risk_assessed',
-                f"Risk assessed: {risk.level} ({risk.score}/100).",
-            )
-        except Exception as exc:
-            logger.error("Risk scoring failed for patient %s: %s", patient.id, exc)
+            # ── Step 4: Risk scoring ────────────────────────────────────────
+            try:
+                risk = calculate_and_save_risk(patient, care_plan_content)
+                log_event(
+                    patient, 'risk_assessed',
+                    f"Risk assessed: {risk.level} ({risk.score}/100).",
+                )
+            except Exception as exc:
+                logger.error("Risk scoring failed for patient %s: %s", patient.id, exc)
 
-        # ── Step 5: Return full dashboard ───────────────────────────────────
+        # ── Step 5: Return full dashboard with proper prefetch ───────────────
+        patient = _prefetch_patient(patient.id)
         serializer = PatientDashboardSerializer(patient)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -165,41 +190,27 @@ class PatientDashboardView(APIView):
     """Return the full dashboard payload for a single patient."""
 
     def get(self, request, patient_id):
-        # Existence check
-        try:
-            patient_ref = Patient.objects.get(id=patient_id)
-        except Patient.DoesNotExist:
+        # Single existence check before the overdue scan
+        if not Patient.objects.filter(id=patient_id).exists():
             return Response(
                 {'error': f'Patient {patient_id} not found.'},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Auto-mark tasks whose deadline has passed as overdue (before full prefetch)
+        # Auto-mark tasks whose deadline has passed as overdue
         today = timezone.now().date()
         stale = Task.objects.filter(
             patient_id=patient_id,
             status__in=['pending', 'in_progress'],
             deadline__lt=today,
-        )
+        ).select_related('patient')
         for task in stale:
             task.status = 'overdue'
             task.save(update_fields=['status', 'updated_at'])
-            log_event(patient_ref, 'missed_deadline', f"Task overdue: {task.title}")
+            log_event(task.patient, 'missed_deadline', f"Task overdue: {task.title}")
 
-        # Full prefetch with correct priority ordering for the serializer
-        task_qs = Task.objects.annotate(porder=_PRIORITY_ORDER).order_by('porder', 'deadline')
-        patient = Patient.objects.prefetch_related(
-            Prefetch('tasks', queryset=task_qs),
-            Prefetch(
-                'care_plans',
-                queryset=CarePlan.objects.prefetch_related(
-                    Prefetch('tasks', queryset=task_qs),
-                ).order_by('-created_at'),
-            ),
-            Prefetch('risk_scores', queryset=RiskScore.objects.order_by('-created_at')),
-            Prefetch('timeline_events', queryset=TimelineEvent.objects.order_by('-timestamp')),
-        ).get(id=patient_id)
-
+        # Single prefetch call covers all serializer needs
+        patient = _prefetch_patient(patient_id)
         serializer = PatientDashboardSerializer(patient)
         return Response(serializer.data)
 
@@ -316,3 +327,52 @@ class HealthCheckView(APIView):
 
     def get(self, request):
         return Response({'status': 'ok', 'service': 'CareSync AI', 'version': '1.0.0'})
+
+
+# ---------------------------------------------------------------------------
+# GET /api/patient/<id>/fhir/
+# ---------------------------------------------------------------------------
+
+class FHIRExportView(APIView):
+    """
+    Export a patient's full record as a FHIR R4 Bundle (type: collection).
+
+    Returns HL7 FHIR R4-compliant JSON containing:
+      - Patient resource
+      - CarePlan resource(s)
+      - Task resource(s)
+      - RiskAssessment resource(s)
+      - AuditEvent resource(s) (timeline)
+
+    Demonstrates interoperability readiness with Epic / Cerner / HL7 FHIR systems.
+    This is a read-only export — no FHIR server required.
+    """
+
+    def get(self, request, patient_id):
+        try:
+            patient = Patient.objects.prefetch_related(
+                Prefetch(
+                    'care_plans',
+                    queryset=CarePlan.objects.select_related('patient'),
+                ),
+                Prefetch(
+                    'tasks',
+                    queryset=Task.objects.select_related('patient', 'care_plan'),
+                ),
+                Prefetch(
+                    'risk_scores',
+                    queryset=RiskScore.objects.select_related('patient'),
+                ),
+                Prefetch(
+                    'timeline_events',
+                    queryset=TimelineEvent.objects.select_related('patient'),
+                ),
+            ).get(id=patient_id)
+        except Patient.DoesNotExist:
+            return Response(
+                {'error': f'Patient {patient_id} not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        bundle = build_fhir_bundle(patient)
+        return Response(bundle)

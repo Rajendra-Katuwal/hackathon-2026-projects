@@ -40,6 +40,7 @@ def _chat(prompt: str, max_tokens: int = 1024, temperature: float = 0.3) -> str:
 # AI Call 1 — Care Plan Generation
 # ---------------------------------------------------------------------------
 
+
 def generate_care_plan(patient_name: str, patient_summary: str) -> str:
     """
     Generate a structured care coordination plan from free-text patient data.
@@ -69,6 +70,7 @@ DISCLAIMER: This is a care coordination aid only — not medical advice or diagn
 # ---------------------------------------------------------------------------
 # AI Call 2 — Task Generation
 # ---------------------------------------------------------------------------
+
 
 def generate_tasks_from_plan(care_plan_content: str, patient_name: str) -> list:
     """
@@ -106,8 +108,8 @@ Return ONLY the JSON array, with no markdown fences or extra text."""
     raw = _chat(prompt, max_tokens=1200, temperature=0.1)
 
     # Extract JSON array robustly
-    start = raw.find('[')
-    end = raw.rfind(']') + 1
+    start = raw.find("[")
+    end = raw.rfind("]") + 1
     if start == -1 or end <= start:
         logger.warning("Task generation: no JSON array found in response.")
         return []
@@ -126,7 +128,10 @@ Return ONLY the JSON array, with no markdown fences or extra text."""
 # AI Call 3 — Risk Scoring
 # ---------------------------------------------------------------------------
 
-def generate_risk_score(patient_name: str, patient_summary: str, care_plan: str) -> dict:
+
+def generate_risk_score(
+    patient_name: str, patient_summary: str, care_plan: str
+) -> dict:
     """
     Assign a risk score (0–100), level (LOW/MEDIUM/HIGH), and reasoning.
     Falls back to rule-based scoring if the AI call fails or returns bad JSON.
@@ -155,18 +160,18 @@ No markdown, no extra text."""
 
     try:
         raw = _chat(prompt, max_tokens=512, temperature=0.1)
-        start = raw.find('{')
-        end = raw.rfind('}') + 1
+        start = raw.find("{")
+        end = raw.rfind("}") + 1
         if start != -1 and end > start:
             data = json.loads(raw[start:end])
-            score = max(0, min(100, int(data.get('score', 50))))
-            level = str(data.get('level', 'MEDIUM')).upper()
-            if level not in ('LOW', 'MEDIUM', 'HIGH'):
+            score = max(0, min(100, int(data.get("score", 50))))
+            level = str(data.get("level", "MEDIUM")).upper()
+            if level not in ("LOW", "MEDIUM", "HIGH"):
                 level = _score_to_level(score)
             return {
-                'score': score,
-                'level': level,
-                'reasoning': data.get('reasoning', 'Risk assessed by AI model.'),
+                "score": score,
+                "level": level,
+                "reasoning": data.get("reasoning", "Risk assessed by AI model."),
             }
     except Exception as exc:
         logger.warning("AI risk scoring failed (%s) — falling back to rules.", exc)
@@ -176,10 +181,10 @@ No markdown, no extra text."""
 
 def _score_to_level(score: int) -> str:
     if score >= 70:
-        return 'HIGH'
+        return "HIGH"
     if score >= 40:
-        return 'MEDIUM'
-    return 'LOW'
+        return "MEDIUM"
+    return "LOW"
 
 
 def _rule_based_risk(summary: str) -> dict:
@@ -189,14 +194,35 @@ def _rule_based_risk(summary: str) -> dict:
     factors = []
 
     high_risk_terms = [
-        'cancer', 'heart failure', 'chf', 'end-stage', 'sepsis', 'stroke',
-        'renal failure', 'ckd stage 4', 'ckd stage 5', 'dialysis', 'copd',
-        'cirrhosis', 'dementia', 'alzheimer',
+        "cancer",
+        "heart failure",
+        "chf",
+        "end-stage",
+        "sepsis",
+        "stroke",
+        "renal failure",
+        "ckd stage 4",
+        "ckd stage 5",
+        "dialysis",
+        "copd",
+        "cirrhosis",
+        "dementia",
+        "alzheimer",
     ]
     medium_risk_terms = [
-        'diabetes', 'hypertension', 'asthma', 'atrial fibrillation', 'afib',
-        'obesity', 'depression', 'anxiety', 'hypothyroidism', 'osteoporosis',
-        'ckd', 'chronic kidney', 'coronary artery disease',
+        "diabetes",
+        "hypertension",
+        "asthma",
+        "atrial fibrillation",
+        "afib",
+        "obesity",
+        "depression",
+        "anxiety",
+        "hypothyroidism",
+        "osteoporosis",
+        "ckd",
+        "chronic kidney",
+        "coronary artery disease",
     ]
 
     for term in high_risk_terms:
@@ -213,8 +239,8 @@ def _rule_based_risk(summary: str) -> dict:
     level = _score_to_level(score)
 
     reasoning = (
-        f"Rule-based assessment. Identified risk factors: "
-        f"{', '.join(factors)}." if factors
+        f"Rule-based assessment. Identified risk factors: " f"{', '.join(factors)}."
+        if factors
         else "Rule-based assessment. No major high-risk conditions explicitly identified."
     )
-    return {'score': score, 'level': level, 'reasoning': reasoning}
+    return {"score": score, "level": level, "reasoning": reasoning}

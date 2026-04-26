@@ -15,6 +15,7 @@ Flow:
 
 import logging
 import os
+import threading
 
 import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
@@ -108,25 +109,34 @@ _MEDICAL_KNOWLEDGE: list[str] = [
 # ---------------------------------------------------------------------------
 
 _collection = None
+_collection_lock = threading.Lock()
 
 
 def _get_collection():
-    """Lazily initialise and return the ChromaDB collection."""
+    """Lazily initialise and return the ChromaDB collection (thread-safe)."""
     global _collection
+    # Fast path — already initialised
     if _collection is not None:
         return _collection
 
-    ef = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
-    client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
-    _collection = client.get_or_create_collection(
-        name="medical_knowledge",
-        embedding_function=ef,
-        metadata={"hnsw:space": "cosine"},
-    )
+    with _collection_lock:
+        # Re-check inside the lock in case another thread just finished init
+        if _collection is not None:
+            return _collection
 
-    if _collection.count() == 0:
-        _populate(_collection)
-        logger.info("RAG: medical knowledge base initialised (%d chunks).", _collection.count())
+        ef = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+        client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
+        col = client.get_or_create_collection(
+            name="medical_knowledge",
+            embedding_function=ef,
+            metadata={"hnsw:space": "cosine"},
+        )
+
+        if col.count() == 0:
+            _populate(col)
+            logger.info("RAG: medical knowledge base initialised (%d chunks).", col.count())
+
+        _collection = col
 
     return _collection
 

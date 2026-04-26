@@ -134,19 +134,21 @@ class PatientDashboardSerializer(serializers.ModelSerializer):
 
     def get_alerts(self, obj):
         """Surface overdue and high-priority pending tasks as alerts."""
+        # Use prefetch cache — do NOT call .filter() which issues new SQL
+        all_tasks = list(obj.tasks.all())
         alerts = []
-        overdue = obj.tasks.filter(status='overdue')
-        for t in overdue:
-            alerts.append({
-                'type': 'overdue',
-                'task_id': t.id,
-                'message': f"Overdue: {t.title}",
-            })
-        critical = obj.tasks.filter(priority='critical', status__in=['pending', 'in_progress'])
-        for t in critical:
-            alerts.append({
-                'type': 'critical',
-                'task_id': t.id,
-                'message': f"Critical priority: {t.title}",
-            })
+        for t in all_tasks:
+            if t.status == 'overdue':
+                alerts.append({
+                    'type': 'overdue',
+                    'task_id': t.id,
+                    'message': f"Overdue: {t.title}",
+                })
+        for t in all_tasks:
+            if t.priority == 'critical' and t.status in ('pending', 'in_progress'):
+                alerts.append({
+                    'type': 'critical',
+                    'task_id': t.id,
+                    'message': f"Critical priority: {t.title}",
+                })
         return alerts
