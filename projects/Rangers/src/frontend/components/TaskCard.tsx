@@ -48,15 +48,15 @@ export default function TaskCard({ isUpdating, onStatusChange, task }: TaskCardP
         aria-hidden
       />
 
-      <div className="pl-3 pr-3 pt-2.5 pb-2">
+      <div className="pl-3.5 pr-3 pt-3 pb-3">
         {/* Title row */}
-        <div className="flex items-start justify-between gap-1.5">
-          <h5 className="line-clamp-2 min-w-0 flex-1 text-xs font-semibold leading-snug text-slate-900">
+        <div className="flex items-start justify-between gap-2">
+          <h5 className="line-clamp-2 min-w-0 flex-1 text-sm font-semibold leading-5 text-slate-900">
             {task.title}
           </h5>
           <span
             className={cn(
-              "ml-1 shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+              "ml-1 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold",
               statusBadgeClass(task.status),
             )}
           >
@@ -65,7 +65,11 @@ export default function TaskCard({ isUpdating, onStatusChange, task }: TaskCardP
         </div>
 
         {/* Meta row */}
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+        {task.description ? (
+          <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-500">{task.description}</p>
+        ) : null}
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span
             className={cn(
               "flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
@@ -85,19 +89,22 @@ export default function TaskCard({ isUpdating, onStatusChange, task }: TaskCardP
         </div>
 
         {/* Status select */}
-        <select
-          aria-label={`Move task: ${task.title}`}
-          value={task.status}
-          disabled={isUpdating}
-          onChange={(e) => void onStatusChange(task.id, e.target.value as TaskStatus)}
-          className="mt-2 w-full rounded border border-slate-200 bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-300 disabled:cursor-not-allowed"
-        >
-          {statusColumns.map((col) => (
-            <option key={col.status} value={col.status}>
-              {col.label}
-            </option>
-          ))}
-        </select>
+        <label className="mt-3 block text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+          Status
+          <select
+            aria-label={`Move task: ${task.title}`}
+            value={task.status}
+            disabled={isUpdating}
+            onChange={(e) => void onStatusChange(task.id, e.target.value as TaskStatus)}
+            className="mt-1 w-full rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-300 disabled:cursor-not-allowed"
+          >
+            {statusColumns.map((col) => (
+              <option key={col.status} value={col.status}>
+                {col.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {/* Updating overlay */}

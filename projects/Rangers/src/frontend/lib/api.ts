@@ -62,6 +62,10 @@ export async function getPatientDashboard(patientId: number | string): Promise<P
   return response.data;
 }
 
+export async function deletePatient(patientId: number | string): Promise<void> {
+  await api.delete(`/api/patient/${patientId}/`);
+}
+
 export async function updateTaskStatus(taskId: number | string, status: TaskStatus): Promise<Task> {
   const response = await api.post<Task>("/api/task/update/", { task_id: taskId, status });
   return response.data;

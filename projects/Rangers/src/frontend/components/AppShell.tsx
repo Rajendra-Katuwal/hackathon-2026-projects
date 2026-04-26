@@ -11,6 +11,7 @@ import PatientDashboard from "@/components/PatientDashboard";
 import Sidebar from "@/components/Sidebar";
 import {
   createCareFlow,
+  deletePatient,
   getApiError,
   getHealth,
   getPatientDashboard,
@@ -32,6 +33,7 @@ export default function AppShell() {
   const [isPatientListLoading, setIsPatientListLoading] = useState(true);
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [isCreatingPatient, setIsCreatingPatient] = useState(false);
+  const [isDeletingPatient, setIsDeletingPatient] = useState(false);
   const [error, setError] = useState("");
 
   const selectedPatientId = selectedPatient?.id ?? null;
@@ -170,6 +172,24 @@ export default function AppShell() {
     [selectedPatient],
   );
 
+  const handleDeleteSelectedPatient = useCallback(async () => {
+    if (!selectedPatientId) return;
+
+    setError("");
+    setIsDeletingPatient(true);
+    try {
+      await deletePatient(selectedPatientId);
+      setSelectedPatient(null);
+      setShowCreateForm(false);
+      await refreshPatients(true);
+    } catch (err) {
+      setError(`Patient deletion failed. ${getApiError(err)}`);
+      throw err;
+    } finally {
+      setIsDeletingPatient(false);
+    }
+  }, [refreshPatients, selectedPatientId]);
+
   const headerTitle = useMemo(() => {
     if (selectedPatient) return selectedPatient.name;
     return "Care coordination workspace";
@@ -200,18 +220,22 @@ export default function AppShell() {
 
       <main className="min-w-0 flex-1">
         <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
-          <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+          <div className="flex min-h-16 items-center justify-between gap-3 px-4 py-3 sm:px-6">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
                 aria-label="Open patient sidebar"
                 onClick={() => setIsSidebarOpen(true)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 lg:hidden"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 lg:hidden"
               >
                 <Menu className="h-5 w-5" aria-hidden />
               </button>
               <div className="min-w-0">
-                <h1 className="truncate text-base font-bold text-slate-950 sm:text-lg">{headerTitle}</h1>
+                <div className="flex items-center gap-2">
+                  <span className="hidden h-2 w-2 rounded-full bg-blue-600 sm:inline-block" aria-hidden />
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">CareSync AI</p>
+                </div>
+                <h1 className="mt-0.5 truncate text-base font-bold text-slate-950 sm:text-lg">{headerTitle}</h1>
               </div>
             </div>
 
@@ -222,7 +246,7 @@ export default function AppShell() {
                   void refreshPatients();
                   if (selectedPatientId) void handleRefreshSelected();
                 }}
-                className="hidden items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 sm:inline-flex"
+                className="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 sm:inline-flex"
               >
                 <RefreshCw className={cn("h-4 w-4", isDashboardLoading && "animate-spin")} aria-hidden />
                 Refresh
@@ -233,7 +257,7 @@ export default function AppShell() {
                   setError("");
                   setShowCreateForm(true);
                 }}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:bg-blue-800"
               >
                 <Plus className="h-4 w-4" aria-hidden />
                 New patient
@@ -266,7 +290,9 @@ export default function AppShell() {
             <LoadingState title="Loading patient dashboard" description="Retrieving care plans, tasks, risk scores, and timeline events." />
           ) : selectedPatient ? (
             <PatientDashboard
+              isDeleting={isDeletingPatient}
               isRefreshing={isDashboardLoading}
+              onDeletePatient={handleDeleteSelectedPatient}
               onRefresh={handleRefreshSelected}
               onTaskStatusChange={handleTaskStatusChange}
               patient={selectedPatient}

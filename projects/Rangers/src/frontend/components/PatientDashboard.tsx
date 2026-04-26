@@ -12,12 +12,14 @@ import {
   Loader2,
   RefreshCw,
   ShieldAlert,
+  Trash2,
 } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 
 import AlertsPanel from "@/components/AlertsPanel";
 import CareGraph from "@/components/CareGraph";
 import CarePlanCard from "@/components/CarePlanCard";
+import Modal from "@/components/Modal";
 import RagPanel from "@/components/RagPanel";
 import RiskCard from "@/components/RiskCard";
 import TaskBoard from "@/components/TaskBoard";
@@ -28,7 +30,9 @@ import { cn, formatDateTime } from "@/lib/utils";
 type Tab = "overview" | "tasks" | "coordination" | "insights";
 
 type PatientDashboardProps = {
+  isDeleting: boolean;
   isRefreshing: boolean;
+  onDeletePatient: () => Promise<void>;
   onRefresh: () => Promise<void>;
   onTaskStatusChange: (taskId: number, status: TaskStatus) => Promise<void>;
   patient: PatientDashboardType;
@@ -62,12 +66,15 @@ function StatPill({
 }
 
 export default function PatientDashboard({
+  isDeleting,
   isRefreshing,
+  onDeletePatient,
   onRefresh,
   onTaskStatusChange,
   patient,
 }: PatientDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const taskCounts = useMemo(
     () =>
@@ -175,6 +182,15 @@ export default function PatientDashboard({
             >
               <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} aria-hidden />
               Refresh
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isDeleting}
+              className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 shadow-sm transition hover:bg-red-50 disabled:opacity-60"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden />
+              Delete
             </button>
           </div>
         </div>
@@ -295,6 +311,50 @@ export default function PatientDashboard({
 
         {activeTab === "insights" ? <RagPanel patientId={patient.id} /> : null}
       </div>
+
+      <Modal
+        open={showDeleteConfirm}
+        onClose={() => {
+          if (!isDeleting) setShowDeleteConfirm(false);
+        }}
+        title="Delete patient record"
+        size="md"
+      >
+        <div className="space-y-4 p-5">
+          <p className="text-sm leading-6 text-slate-600">
+            This will permanently delete {patient.name} and all related care plans, tasks, risk scores, alerts, and timeline events.
+          </p>
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-800">
+            This action cannot be undone.
+          </div>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={() => setShowDeleteConfirm(false)}
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={isDeleting}
+              onClick={async () => {
+                try {
+                  await onDeletePatient();
+                  setShowDeleteConfirm(false);
+                } catch {
+                  // AppShell surfaces the user-facing error banner.
+                }
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden />
+              {isDeleting ? "Deleting..." : "Delete patient"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

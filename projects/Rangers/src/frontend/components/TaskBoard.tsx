@@ -101,20 +101,22 @@ export default function TaskBoard({ onTaskStatusChange, tasks }: TaskBoardProps)
             void handleDragEnd(event);
           }}
         >
-          <p className="mt-2 text-xs text-slate-400">Drag cards to move between columns, or use the dropdown on each card.</p>
-          <div className="mt-4 grid h-[520px] gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {statusColumns.map((column) => (
-              <TaskColumn column={column} key={column.status} tasks={groupedTasks[column.status]}>
-                {groupedTasks[column.status].map((task) => (
-                  <DraggableTaskCard
-                    isUpdating={updatingTaskId === task.id}
-                    key={task.id}
-                    onStatusChange={moveTask}
-                    task={task}
-                  />
-                ))}
-              </TaskColumn>
-            ))}
+          <p className="mt-2 text-xs text-slate-400">Drag cards between columns, or use the status selector on a card.</p>
+          <div className="mt-4 overflow-x-auto pb-2">
+            <div className="grid min-w-[920px] grid-cols-4 gap-3">
+              {statusColumns.map((column) => (
+                <TaskColumn column={column} key={column.status} tasks={groupedTasks[column.status]}>
+                  {groupedTasks[column.status].map((task) => (
+                    <DraggableTaskCard
+                      isUpdating={updatingTaskId === task.id}
+                      key={task.id}
+                      onStatusChange={moveTask}
+                      task={task}
+                    />
+                  ))}
+                </TaskColumn>
+              ))}
+            </div>
           </div>
         </DndContext>
       ) : (
@@ -149,23 +151,23 @@ function TaskColumn({ children, column, tasks }: TaskColumnProps) {
     <section
       ref={setNodeRef}
       className={cn(
-        "flex flex-col rounded-xl border-2 border-t-4 transition",
+        "flex min-h-[420px] flex-col rounded-xl border-2 border-t-4 transition",
         columnAccent[column.status] ?? "border-t-slate-300",
         statusColumnClass(column.status),
         isOver && "ring-2 ring-blue-300",
       )}
     >
       {/* Column header */}
-      <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2">
-        <div>
+      <div className="flex min-h-16 items-start justify-between gap-2 px-3 pt-3 pb-2">
+        <div className="min-w-0">
           <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700">{column.label}</h4>
-          <p className="text-[10px] text-slate-400">{column.description}</p>
+          <p className="mt-0.5 text-[11px] leading-4 text-slate-400">{column.description}</p>
         </div>
         <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-slate-600 shadow-sm">{tasks.length}</span>
       </div>
 
       {/* Scrollable card list */}
-      <div className="flex-1 overflow-y-auto px-3 pb-3">
+      <div className="max-h-[58vh] flex-1 overflow-y-auto px-3 pb-3">
         <div className="min-h-24 space-y-2">{children}</div>
       </div>
     </section>

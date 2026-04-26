@@ -11,10 +11,12 @@ type RagPanelProps = {
 };
 
 const EXAMPLE_QUESTIONS = [
-  "What should the care team prioritize next?",
-  "Which tasks are blocking progress?",
-  "What follow-up gaps exist for this patient?",
-  "Are there any medication adherence risks?",
+  "Which overdue or critical tasks should be handled first, and why?",
+  "What care gaps are visible from the current tasks and timeline?",
+  "Which owner handoffs are most important for the next 48 hours?",
+  "What patient follow-up steps should be confirmed before the next visit?",
+  "Are there medication adherence concerns suggested by the care context?",
+  "What should the nurse, doctor, and patient each do next?",
 ];
 
 export default function RagPanel({ patientId }: RagPanelProps) {

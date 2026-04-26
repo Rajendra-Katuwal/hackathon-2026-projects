@@ -249,6 +249,22 @@ class PatientDashboardView(APIView):
         serializer = PatientDashboardSerializer(patient)
         return Response(serializer.data)
 
+    def delete(self, request, patient_id):
+        try:
+            patient = Patient.objects.get(id=patient_id)
+        except Patient.DoesNotExist:
+            return Response(
+                {'error': f'Patient {patient_id} not found.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        patient_name = patient.name
+        patient.delete()
+        return Response(
+            {'status': 'deleted', 'id': patient_id, 'name': patient_name},
+            status=status.HTTP_200_OK,
+        )
+
 
 # ---------------------------------------------------------------------------
 # POST /api/task/update/
