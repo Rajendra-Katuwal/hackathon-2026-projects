@@ -61,7 +61,7 @@ export default function Sidebar({
                 <ShieldCheck className="h-5 w-5" aria-hidden />
               </span>
               <div>
-                <p className="text-base font-bold text-slate-950">CareSync AI</p>
+                <p className="text-base font-semibold text-slate-950">CareSync AI</p>
                 <p className="text-xs font-medium text-slate-500">Care coordination</p>
               </div>
             </div>
@@ -78,7 +78,7 @@ export default function Sidebar({
           <div className="mt-4 flex items-center justify-between">
             <div
               className={cn(
-                "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold",
+                "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium",
                 healthState === "online" && "border-emerald-200 bg-emerald-50 text-emerald-700",
                 healthState === "offline" && "border-red-200 bg-red-50 text-red-700",
                 healthState === "checking" && "border-slate-200 bg-slate-50 text-slate-500",
@@ -102,7 +102,7 @@ export default function Sidebar({
           <button
             type="button"
             onClick={onNewPatient}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 active:bg-blue-800"
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 active:bg-blue-800"
           >
             <Plus className="h-4 w-4" aria-hidden />
             New patient
@@ -123,8 +123,8 @@ export default function Sidebar({
 
         <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50/70 px-3 py-4">
           <div className="mb-3 flex items-center justify-between px-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Risk queue</p>
-            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Risk queue</p>
+            <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-medium text-slate-500">
               {filteredPatients.length}
             </span>
           </div>
@@ -151,13 +151,13 @@ export default function Sidebar({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-slate-950">{patient.name}</p>
+                      <p className="truncate text-sm font-semibold text-slate-950">{patient.name}</p>
                       <p className="mt-0.5 truncate text-xs leading-5 text-slate-500">{patient.summary_preview || "No summary"}</p>
                     </div>
                     {patient.risk ? (
                       <span
                         className={cn(
-                          "flex-none rounded-full px-2 py-0.5 text-xs font-bold",
+                          "flex-none rounded-full px-2 py-0.5 text-xs font-semibold",
                           patient.risk.level === "HIGH" && "bg-red-100 text-red-700",
                           patient.risk.level === "MEDIUM" && "bg-amber-100 text-amber-700",
                           patient.risk.level === "LOW" && "bg-emerald-100 text-emerald-700",
@@ -171,18 +171,18 @@ export default function Sidebar({
                   {patient.task_counts.total > 0 ? (
                     <div className="mt-2 flex flex-wrap gap-1.5">
                       {patient.task_counts.overdue > 0 ? (
-                        <span className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                        <span className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-700">
                           <AlertTriangle className="h-2.5 w-2.5" aria-hidden />
                           {patient.task_counts.overdue} overdue
                         </span>
                       ) : null}
                       {patient.task_counts.in_progress > 0 ? (
-                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
                           {patient.task_counts.in_progress} active
                         </span>
                       ) : null}
                       {patient.task_counts.pending > 0 ? (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
                           {patient.task_counts.pending} pending
                         </span>
                       ) : null}
@@ -194,7 +194,7 @@ export default function Sidebar({
           ) : (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center shadow-sm">
               <Activity className="mx-auto h-8 w-8 text-slate-300" aria-hidden />
-              <p className="mt-3 text-sm font-semibold text-slate-700">No patients found</p>
+              <p className="mt-3 text-sm font-medium text-slate-700">No patients found</p>
               <p className="mt-1 text-xs text-slate-500">
                 {searchQuery ? "Adjust your search." : "Create a patient to get started."}
               </p>

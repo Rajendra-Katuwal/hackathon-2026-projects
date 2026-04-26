@@ -12,7 +12,7 @@ export default function LoadingState({ description, title }: LoadingStateProps) 
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 shadow-sm">
           <Loader2 className="h-7 w-7 animate-spin text-blue-600" aria-hidden />
         </span>
-        <h2 className="mt-5 text-xl font-bold text-slate-950">{title}</h2>
+        <h2 className="mt-5 text-xl font-semibold text-slate-950">{title}</h2>
         <p className="mt-2 text-sm leading-6 text-slate-500">{description}</p>
       </div>
     </section>

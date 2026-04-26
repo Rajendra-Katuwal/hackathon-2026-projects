@@ -148,14 +148,14 @@ export default function PatientDashboard({
                     : "border-emerald-300 bg-white text-emerald-700",
                 )}
               >
-                <p className="text-2xl font-black leading-none">{riskScore}</p>
-                <p className="mt-0.5 text-[10px] font-bold uppercase tracking-widest">{riskLevel}</p>
+                <p className="text-2xl font-bold leading-none">{riskScore}</p>
+                <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-widest">{riskLevel}</p>
               </div>
             ) : null}
 
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Patient</p>
-              <h2 className="mt-0.5 text-xl font-bold text-slate-950 sm:text-2xl">{patient.name}</h2>
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Patient</p>
+              <h2 className="mt-0.5 text-xl font-semibold text-slate-950 sm:text-2xl">{patient.name}</h2>
               <p className="mt-0.5 text-xs text-slate-500">Registered {formatDateTime(patient.created_at)}</p>
             </div>
           </div>
@@ -166,7 +166,7 @@ export default function PatientDashboard({
               <button
                 type="button"
                 onClick={() => setActiveTab("overview")}
-                className="flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1.5 text-sm font-bold text-red-700 transition hover:bg-red-200"
+                className="flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1.5 text-sm font-semibold text-red-700 transition hover:bg-red-200"
               >
                 <AlertTriangle className="h-4 w-4" aria-hidden />
                 {alertCount} alert{alertCount > 1 ? "s" : ""}
@@ -178,7 +178,7 @@ export default function PatientDashboard({
               type="button"
               onClick={() => void onRefresh()}
               disabled={isRefreshing}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
             >
               <RefreshCw className={cn("h-4 w-4", isRefreshing && "animate-spin")} aria-hidden />
               Refresh
@@ -187,7 +187,7 @@ export default function PatientDashboard({
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={isDeleting}
-              className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700 shadow-sm transition hover:bg-red-50 disabled:opacity-60"
+              className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-50 disabled:opacity-60"
             >
               <Trash2 className="h-4 w-4" aria-hidden />
               Delete
@@ -262,7 +262,7 @@ export default function PatientDashboard({
                 aria-selected={isActive}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3.5 text-sm font-semibold whitespace-nowrap transition",
+                  "flex shrink-0 items-center gap-2 border-b-2 px-3 py-3.5 text-sm font-medium whitespace-nowrap transition",
                   isActive
                     ? "border-blue-600 text-blue-700"
                     : "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-900",
@@ -273,7 +273,7 @@ export default function PatientDashboard({
                 {tab.badge ? (
                   <span
                     className={cn(
-                      "rounded-full px-1.5 py-0.5 text-xs font-bold",
+                      "rounded-full px-1.5 py-0.5 text-xs font-semibold",
                       tab.badgeVariant === "red" ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-600",
                     )}
                   >
@@ -332,7 +332,7 @@ export default function PatientDashboard({
               type="button"
               disabled={isDeleting}
               onClick={() => setShowDeleteConfirm(false)}
-              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+              className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
             >
               Cancel
             </button>
@@ -347,7 +347,7 @@ export default function PatientDashboard({
                   // AppShell surfaces the user-facing error banner.
                 }
               }}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
             >
               <Trash2 className="h-4 w-4" aria-hidden />
               {isDeleting ? "Deleting..." : "Delete patient"}

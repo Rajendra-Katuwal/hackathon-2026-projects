@@ -47,8 +47,8 @@ function PatientNode({ data }: NodeProps) {
       <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/25 text-white">
         <User className="h-5 w-5" aria-hidden />
       </span>
-      <p className="text-sm font-bold leading-snug text-white">{data.label as string}</p>
-      <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-200">Patient</p>
+      <p className="text-sm font-semibold leading-snug text-white">{data.label as string}</p>
+      <p className="text-[10px] font-medium uppercase tracking-widest text-indigo-200">Patient</p>
       <Handle
         type="source"
         position={Position.Bottom}
@@ -81,17 +81,17 @@ function TaskNode({ data }: NodeProps) {
 
       <div className="p-3">
         {/* Title */}
-        <p className="line-clamp-2 text-xs font-bold leading-snug text-slate-900">
+        <p className="line-clamp-2 text-xs font-semibold leading-snug text-slate-900">
           {data.label as string}
         </p>
 
         {/* Status + owner badges */}
         <div className="mt-2 flex flex-wrap gap-1">
-          <span className={cn("flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold", cfg.badge)}>
+          <span className={cn("flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium", cfg.badge)}>
             <span className={cn("h-1.5 w-1.5 rounded-full", cfg.dot)} />
             {cfg.text}
           </span>
-          <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-semibold", OWNER_BADGE[owner] ?? OWNER_BADGE.nurse)}>
+          <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-medium", OWNER_BADGE[owner] ?? OWNER_BADGE.nurse)}>
             {owner}
           </span>
         </div>

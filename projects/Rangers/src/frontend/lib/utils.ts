@@ -63,7 +63,7 @@ export function labelFromToken(value: string): string {
 }
 
 export function riskBadgeClass(level: RiskLevel | null | undefined): string {
-  if (level === "HIGH") return "border-red-200 bg-red-50 text-red-700";
+  if (level === "HIGH") return "border-rose-200 bg-rose-50 text-rose-700";
   if (level === "MEDIUM") return "border-amber-200 bg-amber-50 text-amber-700";
   if (level === "LOW") return "border-emerald-200 bg-emerald-50 text-emerald-700";
   return "border-slate-200 bg-slate-100 text-slate-600";
@@ -74,7 +74,7 @@ export function statusBadgeClass(status: TaskStatus): string {
     pending: "border-slate-200 bg-slate-100 text-slate-700",
     in_progress: "border-blue-200 bg-blue-50 text-blue-700",
     completed: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    overdue: "border-red-200 bg-red-50 text-red-700",
+    overdue: "border-rose-200 bg-rose-50 text-rose-700",
   };
   return classes[status];
 }
@@ -84,7 +84,7 @@ export function statusColumnClass(status: TaskStatus): string {
     pending: "border-slate-200 bg-slate-50",
     in_progress: "border-blue-200 bg-blue-50/50",
     completed: "border-emerald-200 bg-emerald-50/50",
-    overdue: "border-red-200 bg-red-50/50",
+    overdue: "border-rose-200 bg-rose-50/60",
   };
   return classes[status];
 }
@@ -94,7 +94,7 @@ export function priorityBadgeClass(priority: TaskPriority): string {
     low: "border-emerald-200 bg-emerald-50 text-emerald-700",
     medium: "border-amber-200 bg-amber-50 text-amber-700",
     high: "border-orange-200 bg-orange-50 text-orange-700",
-    critical: "border-red-200 bg-red-50 text-red-700",
+    critical: "border-rose-200 bg-rose-50 text-rose-700",
   };
   return classes[priority];
 }
@@ -111,7 +111,7 @@ export function ownerBadgeClass(owner: TaskOwner): string {
 }
 
 export function alertBadgeClass(alert: Alert): string {
-  if (alert.type === "overdue") return "border-red-200 bg-red-50 text-red-700";
+  if (alert.type === "overdue") return "border-rose-200 bg-rose-50 text-rose-700";
   if (alert.type === "critical") return "border-amber-200 bg-amber-50 text-amber-700";
   return "border-slate-200 bg-slate-100 text-slate-700";
 }
